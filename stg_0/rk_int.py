@@ -1,7 +1,7 @@
 import numpy as np
 
 def rk4_step(f,y_n,t_n,h,*args):
-    ''' Runge-kutta integration step to get y_n+1
+    ''' Runge-kutt of fourth order integration step to get y_n+1
 
         INPUTS: f - first derivative function on dy/dt = f(y,t)
                 y_n - initial condition
@@ -15,6 +15,42 @@ def rk4_step(f,y_n,t_n,h,*args):
     k4 = h * f(t_n + h, y_n + k3, *args)
 
     return y_n + (k1 + 2.*k2 + 2.*k3 + k4)/6.
+
+def rk6_step(f,y_n,t_n,h,*args):
+    ''' Runge-kutta of sixth order integration step to get y_n+1
+
+        INPUTS: f - first derivative function on dy/dt = f(y,t)
+                y_n - initial condition
+                t_n - initial condition
+                h - time step
+                args - arguments to pass to f  '''
+
+    k1 = h * f(t_n,y_n,*args)
+	k2 = h * f(t_n+(1/4)*h,y_n+(1/4)*k1*h)
+	k3 = h * f(t_n+(3/8)*h,y_n+(3/32)*h*(k1+3*k2))
+  	k4 = h * f(t_n+(12/13)*h,y_n+(12/2197)*h*(161*k1-600*k2+608*k3))
+  	k5 = h * f(t_n+h,y_n+(1/4104)*h*(8341*k1-32832*k2+29440*k3-845*k4))
+  	k6 = h * f(t_n+(0.5)*h,y_n+h*(-(8/27)*k1+2*k2-(3544/2565)*k3+(1859/4104)*k4-(11/40)*k5))
+
+    return y_n + (k1 + 2.*k2 + 2.*k3 + k4)/6.
+
+
+def rk8_step(f,y_n,t_n,h,*args):
+    ''' Runge-kutta of eight order integration step to get y_n+1
+
+        INPUTS: f - first derivative function on dy/dt = f(y,t)
+                y_n - initial condition
+                t_n - initial condition
+                h - time step
+                args - arguments to pass to f  '''
+
+    k1 = h * 
+    k2 = h * 
+    k3 = h * 
+    k4 = h * 
+
+    return y_n + (k1 + 2.*k2 + 2.*k3 + k4)/6.
+
 
 def solve_rk4(f_rhs,t_f,t_step,ci,*f_args):
     ''' Rk4 implementation to solve a system of linear first order differential equations  
