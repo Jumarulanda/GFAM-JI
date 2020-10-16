@@ -142,3 +142,57 @@ def reim_noRWA_rk(n1,n2,det,q,E0,L,t_lim,dt,y0,rk_order):
 	sols = rk.solve_rk(ode_syst_reim,t_lim,dt,y0,rk_order,omega_n2n1,omega_E,alpha_n2n1)
     
 	return sols
+
+
+# ----------------- Quantum rabi --------------------------
+
+# Quantum interaction term
+
+def lamb(alpha,n):
+	
+	return alpha/(2*np.sqrt(n+1))
+
+# Quantum rabi freq
+
+def omega_q(det,lamb,n):
+	
+	return np.sqrt(det**2 + 4*lamb**2*(n+1))
+
+# exited state coeff
+
+def c_f_q(t,omega,det,lamb,n):
+	
+	c1 = -2j*lamb*np.sqrt(n+1)/omega
+	c2 = np.exp(-1j*det*t/2)
+	c3 = np.sin(omega*t/2)
+
+	return c1*c2*c3
+
+# ground state coeff
+
+def c_i_q(t,omega,det,lamb,n):
+
+	c1 = np.exp(-1j*det*t/2)
+	c2 = np.sin(omega*t/2)*det/omega
+	c3 = np.cos(omega*t/2) 
+
+	return c1*(c2 + c3)
+
+# excited state transition probability
+
+def pe_q(t,omega,det,lamb,n):
+
+	return c_f_q(t,omega,det,lamb,n).real**2 + c_f_q(t,omega,det,lamb,n).imag**2
+
+# ground state transition probability
+
+def pg_q(t,omega,det,lamb,n):
+
+	return c_i_q(t,omega,det,lamb,n).real**2 + c_i_q(t,omega,det,lamb,n).imag**2
+
+
+
+
+
+
+
