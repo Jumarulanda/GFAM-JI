@@ -191,8 +191,29 @@ def pg_q(t,omega,det,lamb,n):
 	return c_i_q(t,omega,det,lamb,n).real**2 + c_i_q(t,omega,det,lamb,n).imag**2
 
 
+# general fotonic superposition probability transition
 
+def w_n(t,n,n_bar,lamb):
+    w1 = np.cos(2*lamb*t*np.sqrt(n+1))
+    w2 = n_bar**n / np.math.factorial(n)
 
+    return w2*w1
 
+def w(t,N,n_bar,lamb):
+    w_sum = 0
+    for n in range(N):
+        w_sum += w_n(t,n,n_bar,lamb)
 
+    return np.exp(-n_bar)*w_sum
 
+def w_sigfig(t,sf,N,n_bar,lamb):
+    reach_sigfig = False
+    for n in range(6,N):
+        w_n = w(t,n,n_bar,lamb) 
+        w_nm1 = w(t,n-1,n_bar,lamb) 
+        if abs(w_n - w_nm1).all() < 10**(-(sf+1)):
+            reach_sigfig = True
+            return w_n
+
+    if not reach_sigfig:
+        return w(t,N,n_bar,lamb)

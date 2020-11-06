@@ -142,3 +142,78 @@ def reim_noRWA_rk(n1,n2,det,q,E0,L,t_lim,dt,y0,rk_order):
 	sols = rk.solve_rk(ode_syst_reim,t_lim,dt,y0,rk_order,omega_n2n1,omega_E,alpha_n2n1)
     
 	return sols
+
+
+# ----------------- Quantum rabi --------------------------
+
+# Quantum interaction term
+
+def lamb(alpha,n):
+	
+	return alpha/(2*np.sqrt(n+1))
+
+# Quantum rabi freq
+
+def omega_q(det,lamb,n):
+	
+	return np.sqrt(det**2 + 4*lamb**2*(n+1))
+
+# exited state coeff
+
+def c_f_q(t,omega,det,lamb,n):
+	
+	c1 = -2j*lamb*np.sqrt(n+1)/omega
+	c2 = np.exp(-1j*det*t/2)
+	c3 = np.sin(omega*t/2)
+
+	return c1*c2*c3
+
+# ground state coeff
+
+def c_i_q(t,omega,det,lamb,n):
+
+	c1 = np.exp(-1j*det*t/2)
+	c2 = np.sin(omega*t/2)*det/omega
+	c3 = np.cos(omega*t/2) 
+
+	return c1*(c2 + c3)
+
+# excited state transition probability
+
+def pe_q(t,omega,det,lamb,n):
+
+	return c_f_q(t,omega,det,lamb,n).real**2 + c_f_q(t,omega,det,lamb,n).imag**2
+
+# ground state transition probability
+
+def pg_q(t,omega,det,lamb,n):
+
+	return c_i_q(t,omega,det,lamb,n).real**2 + c_i_q(t,omega,det,lamb,n).imag**2
+
+
+# general fotonic superposition probability transition
+
+def w_n(t,n,n_bar,lamb):
+    w1 = np.cos(2*lamb*t*np.sqrt(n+1))
+    w2 = n_bar**n / np.math.factorial(n)
+
+    return w2*w1
+
+def w(t,N,n_bar,lamb):
+    w_sum = 0
+    for n in range(N):
+        w_sum += w_n(t,n,n_bar,lamb)
+
+    return np.exp(-n_bar)*w_sum
+
+def w_sigfig(t,sf,N,n_bar,lamb):
+    reach_sigfig = False
+    for n in range(6,N):
+        w_n = w(t,n,n_bar,lamb) 
+        w_nm1 = w(t,n-1,n_bar,lamb) 
+        if abs(w_n - w_nm1).all() < 10**(-(sf+1)):
+            reach_sigfig = True
+            return w_n
+
+    if not reach_sigfig:
+        return w(t,N,n_bar,lamb)
