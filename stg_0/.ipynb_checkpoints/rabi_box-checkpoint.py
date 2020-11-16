@@ -4,6 +4,11 @@ import rk_int as rk
 # Atomic units
 hbar,m_e,e = 1,1,1
 
+# to calculate complex number square modulos
+
+def sq_mod(z):
+    return z.real()**2 + z.imag()**2
+
 # Matrix elements of position operator
 
 def coup(n,m):
@@ -192,6 +197,8 @@ def pg_q(t,omega,det,lamb,n):
 
 
 # general fotonic superposition probability transition
+# with only the exited state initially poblated and
+# with the coherent states for the electric field
 
 def w_n(t,n,n_bar,lamb):
     w1 = np.cos(2*lamb*t*np.sqrt(n+1))
@@ -217,3 +224,48 @@ def w_sigfig(t,sf,N,n_bar,lamb):
 
     if not reach_sigfig:
         return w(t,N,n_bar,lamb)
+
+
+# General fotonic superposition atomic inversion, with general
+# initial conditions
+
+def Sigma(n,lamb,det):
+    S = 4 * lamb**2 * n
+    
+    return det**2 + S
+
+def psi_G(t,lamb,det,c_eg,c_n,N=100):
+    Ce,Cg = c_eg
+
+    psiG_sum = 0
+
+    for n in range(1,N):
+        f1 = (sq_mod(Cg)*sq_mod(c_n(n)) * np.cos(Sigma(n,lamb,det))**2 + sq_mod(Ce)*sq_mod(c_n(n-1)) * np.sin(Sigma(n,lamb,det))**2) * 4 * lamb**2 * n / Sigma(n,lamb,det)**2
+        f2 = sq_mod(Cg)*sq_mod(c_n(n)) * det**2 / Sigma(n,lamb,det)**2
+        f3 = ((np.sin(Sigma(n,lamb,det))*det/Sigma(n,lamb,det) - 1j * np.cos(Sigma(n,lamb,det))) * Cg*c_n(n) * C_e.conjugate()*c_n(n-1).conjugate()).real() * 4*lamb*np.sqrt(n)/Sigma(n,lamb,det)
+       
+        psiG_sum += f1 + f2 + f3
+
+    return psiG_sum
+
+def psi_E(t,lamb,det,c_eg,c_n,N=100):
+    Ce,Cg = c_eg
+
+    psiE_sum = 0
+
+    for n in range(N):
+        f1 = (sq_mod(Ce)*sq_mod(c_n(n)) * np.cos(Sigma(n+1,lamb,det))**2 + sq_mod(Cg)*sq_mod(c_n(n+1)) * np.sin(Sigma(n+1,lamb,det))**2) * 4 * lamb**2 * n / Sigma(n+1,lamb,det)**2
+        f2 = sq_mod(Ce)*sq_mod(c_n(n)) * det**2 / Sigma(n+1,lamb,det)**2
+        f3 = ((np.sin(Sigma(n+1,lamb,det))*det/Sigma(n+1,lamb,det) + 1j * np.cos(Sigma(n+1,lamb,det))) * Cg*c_n(n+1) * C_e.conjugate()*c_n(n).conjugate()).real() * 4*lamb*np.sqrt(n+1)/Sigma(n+1,lamb,det)
+       
+        psiE_sum += f1 + f2 + f3
+
+    return psiE_sum
+
+
+def W(t,lamb,det,c_eg,c_n,N=100):
+    return psi_E(t,lamb,det,c_eg,c_n,N) - psi_G(t,lamb,det,c_eg,c_n,N)
+
+
+def psi_mod(t,lamb,det,c_eg,c_n,N=100):
+    return psi_E(t,lamb,det,c_eg,c_n,N) + psi_G(t,lamb,det,c_eg,c_n,N)
