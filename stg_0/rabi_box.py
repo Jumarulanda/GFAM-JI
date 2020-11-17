@@ -240,9 +240,9 @@ def psi_G(t,lamb,det,c_eg,c_n,N=100,*args):
     psiG_sum = 0
 
     for n in range(1,N):
-        f1 = (sq_mod(Cg)*sq_mod(c_n(n,*args)) * np.cos(Sigma(n,lamb,det)*t/2)**2 + sq_mod(Ce)*sq_mod(c_n(n-1)) * np.sin(Sigma(n,lamb,det)*t/2)**2) * 4 * lamb**2 * n / Sigma(n,lamb,det)**2
+        f1 = (sq_mod(Cg)*sq_mod(c_n(n,*args)) * np.cos(Sigma(n,lamb,det)*t/2)**2 + sq_mod(Ce)*sq_mod(c_n(n-1,*args)) * np.sin(Sigma(n,lamb,det)*t/2)**2) * 4 * lamb**2 * n / Sigma(n,lamb,det)**2
         f2 = sq_mod(Cg)*sq_mod(c_n(n,*args)) * det**2 / Sigma(n,lamb,det)**2
-        f3 = ((np.sin(Sigma(n,lamb,det)*t/2)*det/Sigma(n,lamb,det) - 1j * np.cos(Sigma(n,lamb,det)*t/2)) * Cg*c_n(n,*args) * Ce.conjugate()*c_n(n-1).conjugate()).real * 4*lamb*np.sqrt(n)/Sigma(n,lamb,det)
+        f3 = ((np.sin(Sigma(n,lamb,det)*t/2)*det/Sigma(n,lamb,det) - 1j * np.cos(Sigma(n,lamb,det)*t/2)) * Cg*c_n(n,*args) * Ce.conjugate()*c_n(n-1,*args).conjugate()).real * 4*lamb*np.sqrt(n)/Sigma(n,lamb,det)
        
         psiG_sum += f1 + f2 + f3*np.sin(Sigma(n,lamb,det)*t/2)
 
@@ -253,10 +253,10 @@ def psi_E(t,lamb,det,c_eg,c_n,N=100,*args):
 
     psiE_sum = 0
 
-    for n in range(N):
-        f1 = (sq_mod(Ce)*sq_mod(c_n(n,*args)) * np.cos(Sigma(n+1,lamb,det)*t/2)**2 + sq_mod(Cg)*sq_mod(c_n(n+1)) * np.sin(Sigma(n+1,lamb,det)*t/2)**2) * 4 * lamb**2 * (n+1) / Sigma(n+1,lamb,det)**2
+    for n in range(int(N)):
+        f1 = (sq_mod(Ce)*sq_mod(c_n(n,*args)) * np.cos(Sigma(n+1,lamb,det)*t/2)**2 + sq_mod(Cg)*sq_mod(c_n(n+1,*args)) * np.sin(Sigma(n+1,lamb,det)*t/2)**2) * 4 * lamb**2 * (n+1) / Sigma(n+1,lamb,det)**2
         f2 = sq_mod(Ce)*sq_mod(c_n(n,*args)) * det**2 / Sigma(n+1,lamb,det)**2
-        f3 = ((np.sin(Sigma(n+1,lamb,det)*t/2)*det/Sigma(n+1,lamb,det) + 1j * np.cos(Sigma(n+1,lamb,det)*t/2)) * Cg*c_n(n+1) * Ce.conjugate()*c_n(n,*args).conjugate()).real * 4*lamb*np.sqrt(n+1)/Sigma(n+1,lamb,det)
+        f3 = ((np.sin(Sigma(n+1,lamb,det)*t/2)*det/Sigma(n+1,lamb,det) + 1j * np.cos(Sigma(n+1,lamb,det)*t/2)) * Cg*c_n(n+1,*args) * Ce.conjugate()*c_n(n,*args).conjugate()).real * 4*lamb*np.sqrt(n+1)/Sigma(n+1,lamb,det)
        
         psiE_sum += f1 + f2 + f3*np.sin(Sigma(n+1,lamb,det)*t/2)
 
@@ -274,12 +274,11 @@ def psi_mod(t,lamb,det,c_eg,c_n,N=100,*args):
 # Expansion coefitients for the genear fotonic superposition
 
 def coherent_states(n,*args):
-    print(args)
     alpha = args[0]
 
     exp = np.exp(- abs(alpha)**2 / 2)
     alph_n = alpha**n
-    term = np.sqrt(np.math.factorial(n))
+    term = np.sqrt(float(np.math.factorial(n)))
 
     return exp*alph_n/term
 
@@ -287,11 +286,11 @@ def squeezed_states(n,*args):
     r,theta = args[0],args[1]
 
     if n%2 == 0:
-        s1 = np.sqrt(sp.math.factorial(2*n))/(2**n * sp.math.factorial(n)**2)
-        s2 = np.exp(1j*n*theta)
-        s3 = np.tanh(r)**n
+        s1 = np.sqrt(float(sp.math.factorial(n)))/(2**(n//2) * sp.math.factorial(n//2)**2)
+        s2 = np.exp(1j*(n//2)*theta)
+        s3 = np.tanh(r)**(n//2)
 
-        return (-1)**n * s1*s2*s3 / np.sqrt(np.cosh(r))
+        return (-1)**(n//2) * s1*s2*s3 / np.sqrt(np.cosh(r))
 
     else:
         return 0
@@ -302,8 +301,44 @@ def squeezed_coherent_states(n,*args):
     gamma = alpha*np.cosh(r) + alpha.conjugate() * np.exp(1j*theta) * np.sinh(r)
 
     sc1 = (0.5*np.exp(1j*theta)*np.tanh(r))**(n/2.)/np.sqrt(sp.math.factorial(n))
-    sc2 = H_n(n)(gamma*(np.exp(1j*theta)*np.sinh(2*r))**(-0.5))
+    sc2 = Hermite_n(gamma*(np.exp(1j*theta)*np.sinh(2*r))**(-0.5),n)
+
 
     sct = np.exp(-0.5*(abs(alpha)**2 + alpha.conjugate()**2 * np.exp(1j * theta)*np.tanh(r)))/np.sqrt(np.cosh(r))
 
     return sct*sc1*sc2
+
+
+### HERMITE POLYNOMIALS ####
+
+def c_l_even(x,l,n):
+   c1 = (-1)**(0.5*n - l)
+   c2 = sp.math.factorial(2*l)
+   c3 = sp.math.factorial(0.5*n - l)
+   c4 = (2*x)**(2*l)
+
+   return c1*c4/c2/c3
+
+def c_l_odd(x,l,n):
+   c1 = (-1)**(0.5*(n-1) - l)
+   c2 = sp.math.factorial(2*l+1)
+   c3 = sp.math.factorial(0.5*(n-1) - l)
+   c4 = (2*x)**(2*l+1)
+
+   return c1*c4/c2/c3
+
+
+def Hermite_n(x,n):
+    h_sum = 0
+
+    if n%2 == 0:
+        N = n//2
+        for l in range(N):
+            h_sum += c_l_even(x,l,n)
+
+    else:
+        N = (n-1)//2
+        for l in range(N):
+            h_sum += c_l_odd(x,l,n)
+
+    return sp.math.factorial(n)*h_sum
