@@ -93,25 +93,32 @@ def coherent_states(n,*args):
 
     exp = np.exp(-1*abs(alpha)**2 * 0.5)
     alph_n = alpha**n
-    term = np.sqrt(float(np.math.factorial(n)))
-
+    term = np.sqrt(sp.special.gamma(n))
+    
     return exp*alph_n/term
 
 
 # ---------- pure squeezed states -----------
 
+def div_fac(n,nh,d):
+    if n>1:
+        return div_fac(n-2,nh-1,d)* (n/d/nh) * ((n-1)/d/nh)
+    else:
+        return 1
+
 def ps_coef0(n):
     s1 = (-1)**n
-    s2 = np.sqrt(float(sp.math.factorial(2*n)))
-    s3 = 2**n * sp.math.factorial(n)
+    # s2 = np.sqrt(sp.special.gamma(1+2*n))
+    # s3 = 2**n * sp.special.gamma(1+n)
+    n_term = np.sqrt(div_fac(2*n,n,2))
 
-    return s1*s2/s3
+    return s1*n_term #s2/s3
 
 def ps_coef1(n,r,theta):
-    s1 = np.exp(1j*theta)
+    s1 = np.exp(1j*n*theta)
     s2 = np.tanh(r)
 
-    return (s1*s2)**2
+    return s1 * s2**n
 
 def squeezed_states(n,*args):
     r,theta = args[0],args[1]
@@ -130,13 +137,9 @@ def squeezed_states(n,*args):
 def N_sq(r,theta,alpha):
     n_sq_sum = 0
 
-    t_el = -1 * alpha.conjugate()**2 * np.exp(1j*theta) * np.tanh(r) * 0.5 
+    t_el = -**(alpha.conjugate()**2 + np.exp(1j*theta) * np.tanh(r) )* 0.5 
     
-    for k in range(50):
-        s1 = t_el**k
-        s2 = sp.math.factorial(k) * np.sqrt(float(sp.math.factorial(2*k)))
-
-        n_sq_sum += s1/s2
+    
 
     return np.exp(-1*abs(alpha)**2 * 0.5) * n_sq_sum
 
@@ -157,7 +160,7 @@ def squeezed_coherent_states(n,*args):
 
     t3 = t1**2 / t2
 
-    t_n = Hermite_n(2*gamm(r,theta,alpha)/np.sqrt(np.exp(1j*theta)*np.sinh(2*r)),n) / np.sqrt(float(sp.math.factorial(n)))
+    t_n = Hermite_n(2*gamm(r,theta,alpha)/np.sqrt(np.exp(1j*theta)*np.sinh(2*r)),n) / np.sqrt(sp.special.gamma(1+n))
 
     return N*t3*t_n
 
@@ -166,16 +169,16 @@ def squeezed_coherent_states(n,*args):
 
 def c_l_even(x,l,n):
    c1 = (-1)**(0.5*n - l)
-   c2 = sp.math.factorial(2*l)
-   c3 = sp.math.factorial(0.5*n - l)
+   c2 = sp.special.gamma(1+2*l)
+   c3 = sp.special.gamma(1+0.5*n - l)
    c4 = (2*x)**(2*l)
 
    return c1*c4/c2/c3
 
 def c_l_odd(x,l,n):
    c1 = (-1)**(0.5*(n-1) - l)
-   c2 = sp.math.factorial(2*l+1)
-   c3 = sp.math.factorial(0.5*(n-1) - l)
+   c2 = sp.special.gamma(1+2*l+1)
+   c3 = sp.special.gamma(1+0.5*(n-1) - l)
    c4 = (2*x)**(2*l+1)
 
    return c1*c4/c2/c3
@@ -194,4 +197,4 @@ def Hermite_n(x,n):
         for l in range(N):
             h_sum += c_l_odd(x,l,n)
 
-    return sp.math.factorial(n)*h_sum
+    return sp.special.gamma(1+n)*h_sum
