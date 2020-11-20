@@ -285,12 +285,18 @@ def coherent_states(n,*args):
 def squeezed_states(n,*args):
     r,theta = args[0],args[1]
 
+    N = (np.cosh(r))**(-0.5)
+    
     if n%2 == 0:
-        s1 = np.sqrt(float(sp.math.factorial(n)))/(2**(n//2) * sp.math.factorial(n//2)**2)
-        s2 = np.exp(1j*(n//2)*theta)
-        s3 = np.tanh(r)**(n//2)
+        sign = (-1)**(n/2)
+        tan_phase = ( np.exp(1j*theta) * np.tanh(r) )**(n/2)
 
-        return (-1)**(n//2) * s1*s2*s3 / np.sqrt(np.cosh(r))
+        s1 = np.sqrt( float(sp.math.factorial(n)) )
+        s2 = 2**(n/2) * sp.math.factorial(n//2)
+
+        ss = s1 / s2
+
+        return N * sign * tan_phase * ss
 
     else:
         return 0
@@ -301,7 +307,7 @@ def squeezed_coherent_states(n,*args):
     gamma = alpha*np.cosh(r) + alpha.conjugate() * np.exp(1j*theta) * np.sinh(r)
 
     sc1 = (0.5*np.exp(1j*theta)*np.tanh(r))**(n/2.)/np.sqrt(sp.math.factorial(n))
-    sc2 = Hermite_n(gamma*(np.exp(1j*theta)*np.sinh(2*r))**(-0.5),n)
+    sc2 = Hermite_n(gamma*np.sqrt((np.exp(1j*theta)*np.sinh(2*r))),n)
 
 
     sct = np.exp(-0.5*(abs(alpha)**2 + alpha.conjugate()**2 * np.exp(1j * theta)*np.tanh(r)))/np.sqrt(np.cosh(r))
