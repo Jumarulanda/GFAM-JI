@@ -1,6 +1,11 @@
 import numpy as np
 import scipy as sp
 
+def fac(n):
+    if n>1:
+        return n*fac(n-1)
+    else:
+        return 1
 
 # General fotonic superposition atomic inversion, with general
 # initial conditions
@@ -135,13 +140,12 @@ def squeezed_states(n,*args):
 # ----------- squeezed coherent states ------
 
 def N_sq(r,theta,alpha):
-    n_sq_sum = 0
 
-    t_el = -**(alpha.conjugate()**2 + np.exp(1j*theta) * np.tanh(r) )* 0.5 
-    
-    
+    exp_arg1 = abs(alpha)**2
+    exp_arg2 = alpha.conjugate()**2 * np.exp(1j*theta) * np.tanh(r)
+    t_arg = -1*(exp_arg1 + exp_arg2) * 0.5
 
-    return np.exp(-1*abs(alpha)**2 * 0.5) * n_sq_sum
+    return np.exp(t_arg)
 
 def gamm(r,theta,alpha):
     mu = np.cosh(r)
@@ -158,43 +162,30 @@ def squeezed_coherent_states(n,*args):
     t1 = np.exp(1j*theta)*np.tanh(r)*0.5
     t2 = np.sqrt(np.cosh(r))
 
-    t3 = t1**2 / t2
+    t3 = t1**(n/2) / t2
 
-    t_n = Hermite_n(2*gamm(r,theta,alpha)/np.sqrt(np.exp(1j*theta)*np.sinh(2*r)),n) / np.sqrt(sp.special.gamma(1+n))
+    t_n = H_n(gamm(r,theta,alpha)/np.sqrt(np.exp(1j*theta)*np.sinh(2*r)),n) / np.sqrt(sp.special.gamma(1+n))
 
     return N*t3*t_n
 
 
 ### HERMITE POLYNOMIALS ####
 
-def c_l_even(x,l,n):
-   c1 = (-1)**(0.5*n - l)
-   c2 = sp.special.gamma(1+2*l)
-   c3 = sp.special.gamma(1+0.5*n - l)
-   c4 = (2*x)**(2*l)
+def h_m(x,m,n):
+    h1 = (-1)**m
+    h2 = sp.special.gamma(m+1) * sp.special.gamma((n - 2*m)+1) * (2*x)**(2*m)
 
-   return c1*c4/c2/c3
+    return h1/h2
 
-def c_l_odd(x,l,n):
-   c1 = (-1)**(0.5*(n-1) - l)
-   c2 = sp.special.gamma(1+2*l+1)
-   c3 = sp.special.gamma(1+0.5*(n-1) - l)
-   c4 = (2*x)**(2*l+1)
+def H_n(x,n):
+    H_sum = 0
+    N = n//2
 
-   return c1*c4/c2/c3
+    for m in range(0,N):
+        H_sum += h_m(x,m,n)
+
+    retH = sp.special.gamma(n+1) * (2*x)**n * H_sum
+
+    return retH
 
 
-def Hermite_n(x,n):
-    h_sum = 0
-
-    if n%2 == 0:
-        N = n//2
-        for l in range(N):
-            h_sum += c_l_even(x,l,n)
-
-    else:
-        N = (n-1)//2
-        for l in range(N):
-            h_sum += c_l_odd(x,l,n)
-
-    return sp.special.gamma(1+n)*h_sum
